@@ -1,32 +1,111 @@
-/*
- * Copyright 2018, The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.android.guesstheword
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.android.guesstheword.screens.GameScreenContent
+import com.example.android.guesstheword.screens.ScoreScreenContent
+import com.example.android.guesstheword.screens.TitleScreenContent
+import com.example.android.guesstheword.ui.theme.GuessTheAppTheme
 
-/**
- * Creates an Activity that hosts all of the fragments in the app
+/*
+ * enum class to define the routes.
  */
-class MainActivity : AppCompatActivity() {
+enum class GuessTheWordAppScreen {
+    TitleScreen,
+    GameScreen,
+    ScoreScreen
+}
+
+class MainActivity : ComponentActivity() {
+    // The current score
+    private var score = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.main_activity)
+
+        setContent {
+            GuessTheAppTheme {
+                ScaffoldRootContent(screenTitle = stringResource(R.string.app_name))
+            }
+        }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun ScaffoldRootContent(
+        navigationController: NavHostController = rememberNavController(),
+        screenTitle: String,
+    ) {
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.secondary,
+            topBar = {
+                TopAppBar(
+                    title = { Text(text = screenTitle) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        titleContentColor = MaterialTheme.colorScheme.onSecondary
+                    )
+                )
+            },
+            modifier = Modifier.background(color = Color.Yellow),
+            content = { paddingValues ->
+                GameNavHost(navigationController, paddingValues)
+            }
+        )
+    }
+
+    @Composable
+    private fun GameNavHost(navigationController: NavHostController, paddingValues: PaddingValues) {
+        NavHost(
+            navController = navigationController,
+            startDestination = GuessTheWordAppScreen.TitleScreen.name,
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable(route = GuessTheWordAppScreen.TitleScreen.name) {
+                TitleScreenContent {
+                    navigationController.navigate(GuessTheWordAppScreen.GameScreen.name)
+                }
+            }
+
+            composable(route = GuessTheWordAppScreen.GameScreen.name) {
+                GameScreenContent {
+                    score = it
+                    navigationController.navigate(GuessTheWordAppScreen.ScoreScreen.name)
+                }
+            }
+
+            composable(route = GuessTheWordAppScreen.ScoreScreen.name) {
+                ScoreScreenContent(score.toString()) {
+                    navigationController.navigate(GuessTheWordAppScreen.TitleScreen.name)
+                }
+            }
+        }
+    }
+
+    @Preview(showBackground = true)
+    @Composable
+    fun RootGamePreview() {
+        GuessTheAppTheme {
+            ScaffoldRootContent(screenTitle = stringResource(R.string.app_name))
+        }
+    }
 }
