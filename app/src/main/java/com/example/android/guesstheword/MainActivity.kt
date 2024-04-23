@@ -13,11 +13,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -38,8 +41,6 @@ enum class GuessTheWordAppScreen {
 }
 
 class MainActivity : ComponentActivity() {
-    // The current score
-    private var score = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +59,7 @@ class MainActivity : ComponentActivity() {
     fun ScaffoldRootContent(
         navigationController: NavHostController = rememberNavController(),
         screenTitle: String,
-        gameViewModel: GameViewModel
+        gameViewModel: GameViewModel = viewModel()
     ) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.secondary,
@@ -73,13 +74,18 @@ class MainActivity : ComponentActivity() {
             },
             modifier = Modifier.background(color = Color.Yellow),
             content = { paddingValues ->
-                GameNavHost(navigationController, paddingValues)
+                GameNavHost(navigationController, paddingValues, gameViewModel)
             }
         )
     }
 
     @Composable
-    private fun GameNavHost(navigationController: NavHostController, paddingValues: PaddingValues) {
+    private fun GameNavHost(
+        navigationController: NavHostController,
+        paddingValues: PaddingValues,
+        gameViewModel: GameViewModel,
+    ) {
+        val uiState by gameViewModel.uiState.collectAsState()
         NavHost(
             navController = navigationController,
             startDestination = GuessTheWordAppScreen.TitleScreen.name,
@@ -92,14 +98,20 @@ class MainActivity : ComponentActivity() {
             }
 
             composable(route = GuessTheWordAppScreen.GameScreen.name) {
-                GameScreenContent {
-                    score = it
-                    navigationController.navigate(GuessTheWordAppScreen.ScoreScreen.name)
-                }
+                GameScreenContent(
+                    uiState = uiState,
+                    onSkip = {
+                        gameViewModel.onSkip()
+                    },
+                    onCorrect = {
+                        gameViewModel.onCorrect()
+                    })
             }
 
             composable(route = GuessTheWordAppScreen.ScoreScreen.name) {
-                ScoreScreenContent(score.toString()) {
+                ScoreScreenContent(uiState.score.toString()) {
+                    // Shuffles the words
+                    gameViewModel.resetWords()
                     navigationController.navigate(GuessTheWordAppScreen.TitleScreen.name)
                 }
             }
