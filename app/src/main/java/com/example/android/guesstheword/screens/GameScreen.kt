@@ -12,9 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -22,42 +19,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.android.guesstheword.R
+import com.example.android.guesstheword.data.GameUiState
 import com.example.android.guesstheword.ui.theme.GuessTheAppTheme
 
-
-// The current score
-private var score = 0
-
-// The list of words - the front of the list is the next word to guess
-private var wordList: MutableList<String> = mutableListOf(
-    "queen",
-    "hospital",
-    "basketball",
-    "cat",
-    "change",
-    "snail",
-    "soup",
-    "calendar",
-    "sad",
-    "desk",
-    "guitar",
-    "home",
-    "railway",
-    "zebra",
-    "jelly",
-    "car",
-    "crow",
-    "trade",
-    "bag",
-    "roll",
-    "bubble"
-).also { it.shuffle() }
-
 @Composable
-fun GameScreenContent(onGameFinished: (score: Int) -> Unit) {
-    var mutableWord = remember {
-        mutableStateOf(wordList.removeAt(0))
-    }
+fun GameScreenContent(uiState: GameUiState, onSkip: () -> Unit, onCorrect: () -> Unit) {
     // A surface container using the 'background' color from the theme
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -76,7 +42,7 @@ fun GameScreenContent(onGameFinished: (score: Int) -> Unit) {
             )
             // Guess the Word text
             Text(
-                text = stringResource(id = R.string.quote_format, mutableWord.value),
+                text = stringResource(id = R.string.quote_format, uiState.word),
                 style = MaterialTheme.typography.displayMedium,
             )
             Spacer(modifier = Modifier.weight(1f))
@@ -92,7 +58,7 @@ fun GameScreenContent(onGameFinished: (score: Int) -> Unit) {
             Text(
                 modifier = Modifier
                     .padding(bottom = dimensionResource(id = R.dimen.vertical_margin)),
-                text = stringResource(R.string.score_format, score),
+                text = stringResource(R.string.score_format, uiState.score),
                 style = MaterialTheme.typography.bodyLarge,
             )
             // Buttons row
@@ -104,7 +70,7 @@ fun GameScreenContent(onGameFinished: (score: Int) -> Unit) {
             ) {
                 // Skip button
                 Button(
-                    onClick = { onSkip(mutableWord, onGameFinished) },
+                    onClick = onSkip,
                     modifier = Modifier
                         .padding(
                             bottom = dimensionResource(id = R.dimen.vertical_margin),
@@ -118,7 +84,7 @@ fun GameScreenContent(onGameFinished: (score: Int) -> Unit) {
                 }
                 // Got it button
                 Button(
-                    onClick = { onCorrect(mutableWord, onGameFinished) },
+                    onClick = onCorrect,
                     modifier = Modifier
                         .padding(
                             bottom = dimensionResource(id = R.dimen.vertical_margin),
@@ -135,34 +101,15 @@ fun GameScreenContent(onGameFinished: (score: Int) -> Unit) {
     }
 }
 
-/** Methods for skip button **/
-private fun onSkip(mutableWord: MutableState<String>, gameFinished: (score: Int) -> Unit) {
-    score--
-    nextWord(mutableWord, gameFinished)
-}
-
-/** Methods for correct button **/
-private fun onCorrect(mutableWord: MutableState<String>, gameFinished: (score: Int) -> Unit) {
-    score++
-    nextWord(mutableWord, gameFinished)
-}
-
-/**
- * Moves to the next word in the list
- */
-private fun nextWord(mutableWord: MutableState<String>, gameFinished: (score: Int) -> Unit) {
-    //Select and remove a word from the list
-    if (wordList.isEmpty()) {
-        gameFinished(score)
-    } else {
-        mutableWord.value = wordList.removeAt(0)
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
 fun GameScreenPreview() {
     GuessTheAppTheme {
-        GameScreenContent {}
+        GameScreenContent(
+            uiState = GameUiState(),
+            onSkip = {},
+            onCorrect = {}
+        )
     }
 }
