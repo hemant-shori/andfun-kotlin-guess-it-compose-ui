@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,6 +26,7 @@ import com.example.android.guesstheword.screens.GameScreenContent
 import com.example.android.guesstheword.screens.ScoreScreenContent
 import com.example.android.guesstheword.screens.TitleScreenContent
 import com.example.android.guesstheword.ui.theme.GuessTheAppTheme
+import com.example.android.guesstheword.viewmodels.GameViewModel
 
 /*
  * enum class to define the routes.
@@ -41,10 +43,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        val gameViewModel = ViewModelProvider(this)[GameViewModel::class.java]
         setContent {
             GuessTheAppTheme {
-                ScaffoldRootContent(screenTitle = stringResource(R.string.app_name))
+                ScaffoldRootContent(screenTitle = stringResource(R.string.app_name),
+                    gameViewModel = gameViewModel
+                )
             }
         }
     }
@@ -54,6 +58,7 @@ class MainActivity : ComponentActivity() {
     fun ScaffoldRootContent(
         navigationController: NavHostController = rememberNavController(),
         screenTitle: String,
+        gameViewModel: GameViewModel
     ) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.secondary,
@@ -104,8 +109,11 @@ class MainActivity : ComponentActivity() {
     @Preview(showBackground = true)
     @Composable
     fun RootGamePreview() {
+        val gameViewModel = ViewModelProvider(this)[GameViewModel::class.java]
         GuessTheAppTheme {
-            ScaffoldRootContent(screenTitle = stringResource(R.string.app_name))
+            ScaffoldRootContent(screenTitle = stringResource(R.string.app_name),
+                gameViewModel = gameViewModel
+            )
         }
     }
 }
