@@ -10,4 +10,4 @@ If you get the word right, press **Got It**. If you're stuck, press **Skip**. Th
 
 ## Screenshots
 
-[//]: # (![Screenshot 0]&#40;screenshots/screen0.png&#41; ![Screenshot 1]&#40;screenshots/screen1.png&#41; ![Screenshot 2]&#40;screenshots/screen2.png&#41;)
+![Screenshot 0](screenshots/screen0.png) ![Screenshot 1](screenshots/screen1.png) ![Screenshot 2](screenshots/screen2.png)
